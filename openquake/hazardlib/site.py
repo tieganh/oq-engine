@@ -22,7 +22,7 @@ Module :mod:`openquake.hazardlib.site` defines :class:`Site`.
 import numpy
 from shapely import geometry
 from openquake.baselib.general import (
-    split_in_blocks, not_equal, get_duplicates)
+    not_equal, get_duplicates, AccumDict)
 from openquake.hazardlib.geo.utils import (
     fix_lon, cross_idl, _GeographicObjects, geohash)
 from openquake.hazardlib.geo.mesh import Mesh
@@ -351,16 +351,19 @@ class SiteCollection(object):
         return (self.depths == 0).all()
 
     # used in the engine when computing the hazard statistics
-    def split_in_tiles(self, hint):
+    def split_in_tiles(self, geolength):
         """
         Split a SiteCollection into a set of tiles (SiteCollection instances).
 
         :param hint: hint for how many tiles to generate
         """
+        sids_by_hash = AccumDict(accum=[])
+        for sid, gh in zip(self.sids, self.geohash(geolength)):
+            sids_by_hash[gh].append(sid)
         tiles = []
-        for seq in split_in_blocks(range(len(self)), hint or 1):
+        for sids in sids_by_hash.values():
             sc = SiteCollection.__new__(SiteCollection)
-            sc.array = self.array[numpy.array(seq, int)]
+            sc.array = self.array[numpy.array(sids, int)]
             tiles.append(sc)
         return tiles
 
