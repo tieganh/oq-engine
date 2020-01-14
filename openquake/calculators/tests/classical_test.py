@@ -459,14 +459,13 @@ hazard_uhs-std.csv
             nruptures = []
             for par, rupdata in sorted(self.calc.datastore['rup'].items()):
                 nruptures.append((par, len(rupdata)))
+            n = 4636
             self.assertEqual(
                 nruptures,
-                [('dip', 3202), ('grp_id', 3202), ('hypo_depth', 3202),
-                 ('lat_', 3202), ('lon_', 3202), ('mag', 3202),
-                 ('occurrence_rate', 3202), ('probs_occur', 3202),
-                 ('rake', 3202), ('rjb_', 3202), ('rrup_', 3202),
-                 ('rx_', 3202), ('sid_', 3202),
-                 ('weight', 3202), ('ztor', 3202)])
+                [('dip', n), ('grp_id', n), ('hypo_depth', n), ('lat_', n),
+                 ('lon_', n), ('mag', n), ('occurrence_rate', n),
+                 ('probs_occur', n), ('rake', n), ('rjb_', n), ('rrup_', n),
+                 ('rx_', n), ('sid_', n), ('weight', n), ('ztor', n)])
 
     def test_case_30_sampling(self):
         # IMT-dependent weights with sampling by cheating
