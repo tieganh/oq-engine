@@ -29,7 +29,8 @@ from openquake.baselib.general import AccumDict, block_splitter
 from openquake.hazardlib import mfd
 from openquake.hazardlib.contexts import (
     ContextMaker, Effect, get_effect_by_mag, ruptures_by_mag_dist)
-from openquake.hazardlib.calc.filters import split_sources, getdefault
+from openquake.hazardlib.calc.filters import (
+    split_sources, getdefault, SourceFilter)
 from openquake.hazardlib.calc.hazard_curve import classical
 from openquake.hazardlib.probability_map import ProbabilityMap
 from openquake.hazardlib.site_amplification import Amplifier
@@ -317,7 +318,10 @@ class ClassicalCalculator(base.HazardCalculator):
         smap = parallel.Starmap(
             self.core_task.__func__, h5=self.datastore.hdf5,
             num_cores=oq.num_cores)
-        smap.task_queue = list(self.gen_task_queue())  # really fast
+        num_tiles = self.sitecol.num_geohashes()
+        if num_tiles > 1:
+            logging.info('There are %d tiles', num_tiles)
+        smap.task_queue = list(self.gen_task_queue(num_tiles))  # really fast
         acc0 = self.acc0()  # create the rup/ datasets BEFORE swmr_on()
         self.datastore.swmr_on()
         smap.h5 = self.datastore.hdf5
@@ -353,7 +357,7 @@ class ClassicalCalculator(base.HazardCalculator):
         self.calc_times.clear()  # save a bit of memory
         return acc
 
-    def gen_task_queue(self):
+    def gen_task_queue(self, num_tiles):
         """
         Build a task queue to be attached to the Starmap instance
         """
@@ -395,14 +399,19 @@ class ClassicalCalculator(base.HazardCalculator):
                 nb = 1
                 yield f1, (sources, srcfilter, gsims, param)
             else:  # regroup the sources in blocks
+                nb = 0
                 if oq.split_by_magnitude:
                     sources = split_by_mag(sources)
-                blocks = list(block_splitter(sources, totweight/C, srcweight))
-                nb = len(blocks)
-                for block in blocks:
-                    logging.debug('Sending %d sources with weight %d',
-                                  len(block), block.weight)
-                    yield f2, (block, srcfilter, gsims, param)
+                if num_tiles == 1:
+                    for block in block_splitter(
+                            sources, totweight/C, srcweight):
+                        yield f2, (block, srcfilter, gsims, param)
+                        nb += 1
+                else:
+                    for sitecol in self.sitecol.split_in_tiles():
+                        sf = SourceFilter(sitecol, oq.maximum_distance)
+                        yield f2, (sources, sf, gsims, param)
+                        nb += 1
 
             nr = sum(src.weight for src in sources)
             logging.info('TRT = %s', trt)

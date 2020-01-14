@@ -351,11 +351,11 @@ class SiteCollection(object):
         return (self.depths == 0).all()
 
     # used in the engine when computing the hazard statistics
-    def split_in_tiles(self, geolength):
+    def split_in_tiles(self, geolength=2):
         """
         Split a SiteCollection into a set of tiles (SiteCollection instances).
 
-        :param hint: hint for how many tiles to generate
+        :param geolength: an integer from 2 (630 km tile) to 5 (2.4 km tile)
         """
         sids_by_hash = AccumDict(accum=[])
         for sid, gh in zip(self.sids, self.geohash(geolength)):
@@ -364,6 +364,7 @@ class SiteCollection(object):
         for sids in sids_by_hash.values():
             sc = SiteCollection.__new__(SiteCollection)
             sc.array = self.array[numpy.array(sids, int)]
+            sc.complete = sc
             tiles.append(sc)
         return tiles
 
@@ -471,9 +472,9 @@ class SiteCollection(object):
                for lon, lat in zip(self.lons, self.lats)]
         return numpy.array(lst, (numpy.string_, length))
 
-    def num_geohashes(self, length):
+    def num_geohashes(self, length=2):
         """
-        :param length: length of the geohash
+        :param length: length of the geohash (default 2 -> 630 km)
         :returns: number of distinct geohashes in the site collection
         """
         return len(numpy.unique(self.geohash(length)))
