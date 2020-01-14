@@ -408,6 +408,8 @@ class ClassicalCalculator(base.HazardCalculator):
                         yield f2, (block, srcfilter, gsims, param)
                         nb += 1
                 else:
+                    # split the sources and send them
+                    sources, _stime = split_sources(sources)
                     for sitecol in self.sitecol.split_in_tiles():
                         sf = SourceFilter(sitecol, oq.maximum_distance)
                         yield f2, (sources, sf, gsims, param)

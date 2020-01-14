@@ -352,9 +352,9 @@ class SourceFilter(object):
         :yields: sources with .indices
         """
         for src in sources:
-            if hasattr(src, 'indices'):   # already filtered
-                yield src
-                continue
+            #if hasattr(src, 'indices'):   # already filtered
+            #    yield src
+            #    continue
             try:
                 box = self.integration_distance.get_affected_box(src)
             except BBoxError:  # too large, don't filter
