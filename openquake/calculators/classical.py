@@ -357,7 +357,7 @@ class ClassicalCalculator(base.HazardCalculator):
         self.calc_times.clear()  # save a bit of memory
         return acc
 
-    def gen_task_queue(self, num_tiles):
+    def gen_task_queue(self, num_tiles=1):
         """
         Build a task queue to be attached to the Starmap instance
         """
