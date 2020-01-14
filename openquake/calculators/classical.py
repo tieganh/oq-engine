@@ -506,7 +506,7 @@ class ClassicalCalculator(base.HazardCalculator):
         allargs = [  # this list is very fast to generate
             (getters.PmapGetter(self.datastore, weights, t.sids, oq.poes),
              N, hstats, oq.individual_curves, oq.max_sites_disagg, amplifier)
-            for t in self.sitecol.split_in_tiles(geolength=4)]
+            for t in self.sitecol.split_in_tiles(geolength=3)]
         self.datastore.swmr_on()
         parallel.Starmap(
             build_hazard, allargs, h5=self.datastore.hdf5
