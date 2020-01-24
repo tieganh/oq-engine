@@ -535,11 +535,27 @@ def asset_number(value):
     """
     :param value: input string
     :returns: positive integer in the range 1..65535
+
+    >>> asset_number('123.0')
+    123
+    >>> asset_number('1.23E2')
+    123
+    >>> asset_number('123.1')
+    Traceback (most recent call last):
+      ...
+    ValueError: got 123.100000 which is not an integer
+    >>> asset_number('0')
+    Traceback (most recent call last):
+      ...
+    ValueError: got 0 < 1
     """
     try:
         i = int(value)
     except ValueError:
-        i = int(float(value))
+        f = float(value)
+        i = int(f)
+        if f != i:
+            raise ValueError('got %f which is not an integer' % f)
     if i < 1:
         raise ValueError('got %d < 1' % i)
     elif i > 65535:
