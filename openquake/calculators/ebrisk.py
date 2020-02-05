@@ -29,7 +29,7 @@ from openquake.risklib import riskmodels
 from openquake.risklib.scientific import LossesByAsset
 from openquake.risklib.riskinput import (
     cache_epsilons, get_assets_by_taxo, get_output)
-from openquake.commonlib import logs
+from openquake.commonlib import logs, calc
 from openquake.calculators import base, event_based, getters
 from openquake.calculators.post_risk import PostRiskCalculator
 
@@ -181,6 +181,12 @@ class EbriskCalculator(event_based.EventBasedCalculator):
         oq = self.oqparam
         oq.ground_motion_fields = False
         super().pre_execute()
+        if ('effect_by_mag_dst_trt' not in self.datastore and
+                'source_mags' in self.datastore and len(oq.imtls)):
+            mags = self.datastore['source_mags'][()]
+            gsims_by_trt = self.csm.info.get_gsims_by_trt()
+            self.datastore['effect_by_mag_dst_trt'] = calc.get_effect(
+                mags, self.sitecol, gsims_by_trt, oq)
         self.param['lba'] = lba = (
             LossesByAsset(self.assetcol, oq.loss_names,
                           self.policy_name, self.policy_dict))
