@@ -521,7 +521,7 @@ def gen_rupture_getters(dstore, srcfilter, slc=slice(None)):
         blocks = list(general.block_splitter(
             proxies, maxweight, operator.attrgetter('weight')))
         logging.info('Group %d: %d ruptures -> %d task(s)',
-                     grp_id, len(rups), len(blocks))
+                     grp_id, len(proxies), len(blocks))
         for block in blocks:
             rgetter = RuptureGetter(
                 block, dstore.filename, grp_id,
