@@ -235,7 +235,8 @@ class EbriskCalculator(event_based.EventBasedCalculator):
         smap.reduce(self.agg_dicts)
         if self.indices:
             self.datastore['event_loss_table/indices'] = self.indices
-        gmf_bytes = self.datastore['gmf_info']['gmfbytes'].sum()
+        info = self.datastore['gmf_info']
+        gmf_bytes = info['gmfbytes'].sum() if len(info) else 0
         logging.info(
             'Produced %s of GMFs', general.humansize(gmf_bytes))
         logging.info('Considered {:_d} / {:_d} losses'.format(*self.numlosses))
