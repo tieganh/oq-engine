@@ -141,9 +141,8 @@ class GmfComputer(object):
             # it is better to have few calls producing big arrays
             array, sig, eps = self.compute(gs, num_events)
             array = array.transpose(1, 0, 2)  # from M, N, E to N, M, E
-            for i, miniml in enumerate(min_iml):  # gmv < minimum
-                arr = array[:, i, :]
-                arr[arr < miniml] = 0
+            if min_iml:
+                array[array < min_iml] = 0
             n = 0
             for rlzi in rlzs:
                 eids = eids_by_rlz[rlzi] + self.e0
@@ -161,7 +160,7 @@ class GmfComputer(object):
                         if gmv.sum():
                             data.append((sid, eid, gmv))
                 n += e
-        m = (len(min_iml),)
+        m = (len(self.imts),)
         d = numpy.array(data, [('sid', U32), ('eid', U32), ('gmv', (F32, m))])
         return d, time.time() - t0
 

@@ -336,7 +336,6 @@ class GmfGetter(object):
         self.srcfilter = srcfilter
         self.sitecol = srcfilter.sitecol.complete
         self.oqparam = oqparam
-        self.min_iml = oqparam.min_iml
         self.N = len(self.sitecol)
         self.num_rlzs = sum(len(rlzs) for rlzs in self.rlzs_by_gsim.values())
         self.sig_eps_dt = sig_eps_dt(oqparam.imtls)
@@ -350,6 +349,8 @@ class GmfGetter(object):
         self.cmaker = ContextMaker(
             rupgetter.trt, rupgetter.rlzs_by_gsim, param)
         self.correl_model = oqparam.correl_model
+        self.min_iml = calc.filters.getdefault(
+            oqparam.minimum_intensity, rupgetter.trt)
 
     def gen_computers(self, mon):
         """

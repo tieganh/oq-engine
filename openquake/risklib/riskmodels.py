@@ -595,12 +595,12 @@ class CompositeRiskModel(collections.abc.Mapping):
                        for lt, kind in rm.risk_functions
                        if kind in 'vulnerability fragility'}
         self.curve_params = self.make_curve_params(oqparam)
-        iml = collections.defaultdict(list)
+        imls = []
         for riskid, rm in self._riskmodels.items():
             for lt, rf in rm.risk_functions.items():
                 if hasattr(rf, 'imt'):
-                    iml[rf.imt].append(rf.imls[0])
-        self.min_iml = {imt: min(iml[imt]) for imt in iml}
+                    imls.append(rf.imls[0])
+        self.min_iml = {'default': min(imls)}
 
     def eid_dmg_dt(self):
         """

@@ -132,6 +132,7 @@ class EventBasedCalculator(base.HazardCalculator):
         """
         oq = self.oqparam
         gsims_by_trt = self.csm.info.get_gsims_by_trt()
+        calc.save_effect(self.datastore, gsims_by_trt, oq)
         logging.info('Building ruptures')
         eff_ruptures = AccumDict(accum=0)  # grp_id => potential ruptures
         calc_times = AccumDict(accum=numpy.zeros(3, F32))  # nr, ns, dt
@@ -303,8 +304,7 @@ class EventBasedCalculator(base.HazardCalculator):
         if hasattr(self, 'crmodel') and not oq.minimum_intensity:
             # infer it from the risk models if not directly set in job.ini
             oq.minimum_intensity = self.crmodel.min_iml
-        min_iml = oq.min_iml
-        if min_iml.sum() == 0:
+        if sum(oq.minimum_intensity.values()) == 0:
             logging.warning('The GMFs are not filtered: '
                             'you may want to set a minimum_intensity')
         else:

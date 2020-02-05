@@ -149,7 +149,7 @@ class OqParam(valid.ParamSet):
     max_sites_disagg = valid.Param(valid.positiveint, 10)
     mean_hazard_curves = mean = valid.Param(valid.boolean, True)
     std = valid.Param(valid.boolean, False)
-    minimum_intensity = valid.Param(valid.floatdict, {})  # IMT -> minIML
+    minimum_intensity = valid.Param(valid.floatdict, {})  # TRT -> minIML
     minimum_magnitude = valid.Param(valid.floatdict, {'default': 0})
     modal_damage_state = valid.Param(valid.boolean, False)
     number_of_ground_motion_fields = valid.Param(valid.positiveint)
@@ -447,24 +447,6 @@ class OqParam(valid.ParamSet):
             self._risk_files = get_risk_files(parent.inputs)
             costtypes = set(rt.rsplit('/')[1] for rt in self.risk_files)
         return sorted(costtypes)
-
-    @property
-    def min_iml(self):
-        """
-        :returns: a numpy array of intensities, one per IMT
-        """
-        mini = self.minimum_intensity
-        if mini:
-            for imt in self.imtls:
-                try:
-                    mini[imt] = calc.filters.getdefault(mini, imt)
-                except KeyError:
-                    raise ValueError(
-                        'The parameter `minimum_intensity` in the job.ini '
-                        'file is missing the IMT %r' % imt)
-        if 'default' in mini:
-            del mini['default']
-        return F32([mini.get(imt, 0) for imt in self.imtls])
 
     def set_risk_imtls(self, risk_models):
         """
