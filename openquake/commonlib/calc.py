@@ -272,12 +272,11 @@ class RuptureSerializer(object):
         self.datastore.set_attrs('ruptures', **attr)
 
 
-def save_effect(dstore, gsims_by_trt, oq):
+def save_effect(dstore, sitecol, gsims_by_trt, oq):
     """
     Save effect_by_mag_dst_trt and update oq.maximum_distance.magdist and
     oq.pointsource_distance
     """
-    sitecol = dstore['sitecol']
     mags = dstore['source_mags'][()]
     if len(mags) == 0:  # everything was discarded
         raise RuntimeError('All sources were discarded!?')

@@ -270,7 +270,7 @@ class ClassicalCalculator(base.HazardCalculator):
             self.calc_stats()  # post-processing
             return {}
         gsims_by_trt = self.csm_info.get_gsims_by_trt()
-        calc.save_effect(self.datastore, gsims_by_trt, oq)
+        calc.save_effect(self.datastore, self.sitecol, gsims_by_trt, oq)
         smap = parallel.Starmap(
             self.core_task.__func__, h5=self.datastore.hdf5,
             num_cores=oq.num_cores)
