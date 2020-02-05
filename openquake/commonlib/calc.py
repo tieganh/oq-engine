@@ -272,14 +272,12 @@ class RuptureSerializer(object):
         self.datastore.set_attrs('ruptures', **attr)
 
 
-def save_effect(dstore, sitecol, gsims_by_trt, oq):
+def get_effect(mags, sitecol, gsims_by_trt, oq):
     """
-    Save effect_by_mag_dst_trt and update oq.maximum_distance.magdist and
-    oq.pointsource_distance
+    :returns: an ArrayWrapper effect_by_mag_dst_trt
+
+    Also updates oq.maximum_distance.magdist and oq.pointsource_distance
     """
-    mags = dstore['source_mags'][()]
-    if len(mags) == 0:  # everything was discarded
-        raise RuntimeError('All sources were discarded!?')
     dist_bins = {trt: oq.maximum_distance.get_dist_bins(trt)
                  for trt in gsims_by_trt}
     # computing the effect make sense only if all IMTs have the same
@@ -288,6 +286,9 @@ def save_effect(dstore, sitecol, gsims_by_trt, oq):
     imts_with_period = [imt for imt in oq.imtls
                         if imt == 'PGA' or imt.startswith('SA')]
     imts_ok = len(imts_with_period) == len(oq.imtls)
+    aw = hdf5.ArrayWrapper((), dist_bins)
+    if sitecol is None:
+        return aw
     if len(sitecol) >= oq.max_sites_disagg and imts_ok:
         logging.info('Computing effect of the ruptures')
         mon = performance.Monitor('rupture effect')
@@ -295,8 +296,7 @@ def save_effect(dstore, sitecol, gsims_by_trt, oq):
             get_effect_by_mag,
             (mags, sitecol.one(), gsims_by_trt,
              oq.maximum_distance, oq.imtls, mon)).reduce()
-        dstore['effect_by_mag_dst_trt'] = eff_by_mag
-        dstore.set_attrs('effect_by_mag_dst_trt', **dist_bins)
+        aw.array = eff_by_mag
         effect.update({
             trt: Effect({mag: eff_by_mag[mag][:, t] for mag in eff_by_mag},
                         dist_bins[trt])
@@ -317,3 +317,4 @@ def save_effect(dstore, sitecol, gsims_by_trt, oq):
             except TypeError:  # 'NoneType' object is not subscriptable
                 dst = getdefault(oq.maximum_distance, trt)
             oq.pointsource_distance[trt] = {mag: dst for mag in mags}
+    return aw
