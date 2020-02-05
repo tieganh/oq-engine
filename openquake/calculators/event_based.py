@@ -132,7 +132,7 @@ class EventBasedCalculator(base.HazardCalculator):
         """
         oq = self.oqparam
         gsims_by_trt = self.csm.info.get_gsims_by_trt()
-        if self.sitecol is not None:
+        if self.sitecol is not None and len(oq.imtls):
             calc.save_effect(self.datastore, self.sitecol, gsims_by_trt, oq)
         logging.info('Building ruptures')
         eff_ruptures = AccumDict(accum=0)  # grp_id => potential ruptures
