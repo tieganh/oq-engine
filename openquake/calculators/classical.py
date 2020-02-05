@@ -270,9 +270,10 @@ class ClassicalCalculator(base.HazardCalculator):
             self.calc_stats()  # post-processing
             return {}
         gsims_by_trt = self.csm_info.get_gsims_by_trt()
-        if 'mags' in self.datastore:
+        if 'source_mags' in self.datastore:
+            mags = self.datastore['source_mags'][()]
             self.datastore['effect_by_mag_dst_trt'] = calc.get_effect(
-                self.datastore['mags'][()], self.sitecol, gsims_by_trt, oq)
+                mags, self.sitecol, gsims_by_trt, oq)
         smap = parallel.Starmap(
             self.core_task.__func__, h5=self.datastore.hdf5,
             num_cores=oq.num_cores)
