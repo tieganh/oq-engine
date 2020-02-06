@@ -43,7 +43,6 @@ rlz_dt = numpy.dtype([
 ])
 
 source_model_dt = numpy.dtype([
-    ('name', hdf5.vstr),
     ('weight', F32),
     ('path', hdf5.vstr),
     ('num_rlzs', U32),
@@ -181,10 +180,12 @@ class CompositionInfo(object):
         trti = self.trt2i()
         sg_data = []
         sm_data = []
+        sm_names = []
         for sm in self.source_models:
             trts = set(sg.trt for sg in sm.src_groups)
             num_gsim_paths = self.gsim_lt.reduce(trts).get_num_paths()
-            sm_data.append((sm.names, sm.weight, '_'.join(sm.path),
+            sm_names.append(sm.names)
+            sm_data.append((sm.weight, '_'.join(sm.path),
                             num_gsim_paths, sm.samples))
             for src_group in sm.src_groups:
                 sg_data.append((src_group.id, src_group.name,
@@ -192,6 +193,7 @@ class CompositionInfo(object):
                                 src_group.tot_ruptures, sm.ordinal))
         return (dict(
             gsim_lt=self.gsim_lt,
+            sm_names=numpy.array(sm_names, hdf5.vstr),
             sg_data=numpy.array(sg_data, src_group_dt),
             sm_data=numpy.array(sm_data, source_model_dt)),
                 dict(seed=self.seed, num_samples=self.num_samples,
@@ -200,8 +202,9 @@ class CompositionInfo(object):
 
     def __fromh5__(self, dic, attrs):
         # TODO: this is called more times than needed, maybe we should cache it
-        sg_data = group_array(dic['sg_data'], 'sm_id')
-        sm_data = dic['sm_data']
+        sg_data = group_array(dic['sg_data'][()], 'sm_id')
+        sm_data = dic['sm_data'][()]
+        sm_names = dic['sm_names'][()]
         vars(self).update(attrs)
         self.gsim_lt = dic['gsim_lt']
         self.source_models = []
@@ -216,7 +219,7 @@ class CompositionInfo(object):
                 for data in tdata]
             path = tuple(str(decode(rec['path'])).split('_'))
             sm = logictree.LtSourceModel(
-                rec['name'], rec['weight'], path, srcgroups,
+                sm_names[sm_id], rec['weight'], path, srcgroups,
                 rec['num_rlzs'], sm_id, rec['samples'])
             self.source_models.append(sm)
         self.init()
