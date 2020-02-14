@@ -48,6 +48,7 @@ from openquake.hazardlib.sourceconverter import (
     split_coords_2d, split_coords_3d, SourceGroup)
 
 from openquake.baselib.node import node_from_elem, Node as N, context
+from openquake.commonlib.lt import LogicTree
 
 #: Minimum value for a seed number
 MIN_SINT_32 = -(2 ** 31)
@@ -622,6 +623,7 @@ class SourceModelLogicTree(object):
             raise LogicTreeError(
                 root, self.filename, "missing logicTree node")
         self.parse_tree(tree, validate)
+        self.lt = LogicTree.from_xml(filename)
 
     @property
     def on_each_source(self):
@@ -792,11 +794,6 @@ class SourceModelLogicTree(object):
         return modelname, branch_ids
 
     def __iter__(self):
-        """
-        Yield Realization tuples. Notice that the weight is homogeneous when
-        sampling is enabled, since it is accounted for in the sampling
-        procedure.
-        """
         if self.num_samples:
             # random sampling of the logic tree
             weight = 1. / self.num_samples
@@ -808,10 +805,21 @@ class SourceModelLogicTree(object):
             ordinal = 0
             for weight, smlt_path in self.root_branchset.enumerate_paths():
                 name = smlt_path[0].value
+                print('---------', name)
                 smlt_branch_ids = [branch.branch_id for branch in smlt_path]
                 yield Realization(name, weight, tuple(smlt_branch_ids),
                                   ordinal, tuple(smlt_branch_ids))
                 ordinal += 1
+
+    def _iter__(self):
+        """
+        Yield Realization tuples. Notice that the weight is homogeneous when
+        sampling is enabled, since it is accounted for in the sampling
+        procedure.
+        """
+        for rlz in self.lt.gen_rlzs(self.num_samples, self.seed):
+            yield Realization(rlz.value[0], rlz.weight, rlz.lt_path,
+                              rlz.ordinal, rlz.lt_path)
 
     def parse_uncertainty_value(self, node, branchset):
         """
