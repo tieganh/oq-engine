@@ -786,7 +786,6 @@ class SourceModelLogicTree(object):
             ordinal = 0
             for weight, smlt_path in self.root_branchset.enumerate_paths():
                 name = smlt_path[0].value
-                print('---------', name)
                 smlt_branch_ids = [branch.branch_id for branch in smlt_path]
                 yield Realization(name, weight, ordinal,
                                   tuple(smlt_branch_ids))

@@ -29,7 +29,20 @@ class InvalidLogicTree(Exception):
     pass
 
 
-Branch = namedtuple('Branch', 'bsid brid uncertainty weight')
+class Branch(tuple):
+    def __new__(cls, bsid, brid, uncertainty, weight, childset=None):
+        self = tuple.__new__(cls, (bsid, brid, uncertainty, weight))
+        self.bsid = bsid
+        self.brid = brid
+        self.uncertainty = uncertainty
+        self.weight = weight
+        self.childset = childset
+        return self
+
+    def __repr__(self):
+        return self.brid
+
+
 BranchSet = namedtuple('BranchSet', 'branches attrs')
 Realization = namedtuple('Realization', 'value weight lt_path ordinal')
 
@@ -76,6 +89,21 @@ def _bsnodes(fname, branchinglevel):
                          branchinglevel)
 
 
+def count_rlzs(branch):
+    if not branch.childset:
+        return 1
+    return sum(map(count_rlzs, branch.childset.branches))
+
+
+def full_enum(branch):
+    print(branch)
+    if not branch.childset:
+        yield branch
+    else:
+        for br in branch.childset.branches:
+            yield from full_enum(br)
+
+
 class LogicTree(object):
     """
     A simple logic tree object build over a list of branchsets,
@@ -102,7 +130,17 @@ class LogicTree(object):
         return cls(branchsets)
 
     def __init__(self, branchsets):
+        # example: branchsets [a1 a2] [b1 b2 b3] [c1 c2 c3]
+        # with applyToBranches=a2 and applyToBranches=b1 b2
         self.branchset = {bs.attrs['bsid']: bs for bs in branchsets}
+        for i, childset in enumerate(branchsets[1:]):
+            atb = childset.attrs.get('applyToBranches')  # a2, then b1 b2
+            for branch in branchsets[i].branches:  # parent branches
+                if not atb or branch.brid in atb:
+                    branch.childset = childset
+
+    def rootbranches(self):
+        return self.branchset[next(iter(self.branchset))].branches
 
     def reduce(self, bsids):
         """
@@ -186,4 +224,3 @@ if __name__ == '__main__':
         lt = f['lt']
     for rlz in lt.gen_rlzs():
         print(rlz)
-    print(lt)
