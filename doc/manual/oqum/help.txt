@@ -9,6 +9,7 @@ usage: oq engine [-h] [--log-file LOG_FILE] [--no-distribute] [-y]
                  [--export-output OUTPUT_ID TARGET_DIR]
                  [--export-outputs CALCULATION_ID TARGET_DIR] [-e]
                  [-l {debug, info, warn, error, critical}] [-r]
+                 [--param PARAM]
 
 Run a calculation using the traditional command line API
 
