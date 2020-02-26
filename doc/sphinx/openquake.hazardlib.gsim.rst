@@ -538,6 +538,14 @@ gmpe_table
     :undoc-members:
     :show-inheritance:
 
+gregor_2002
+------------------------------------------
+
+.. automodule:: openquake.hazardlib.gsim.gregor_2002
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 gupta_2010
 ------------------------------------------
 
